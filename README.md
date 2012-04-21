@@ -1,4 +1,4 @@
 nodache
 =======
 
-An open-source HTTP server for NodeJS
+An open-source HTTP file server for NodeJS
