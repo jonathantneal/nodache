@@ -1,0 +1,107 @@
+<!doctype html>
+<%
+
+function pad2(number) {
+	var zero = 3 - number.toString().length;
+
+	return Array( +(zero > 0 && zero)).join('0') + number;
+}
+
+function bytesToSize(bytes, precision) {
+	var
+	sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'], posttxt = 0;
+	if (bytes == 0) {
+		return 'n/a';
+	}
+
+	while(bytes >= 1024) { 
+		++posttxt;
+
+		bytes = bytes / 1024;
+	}
+
+	return bytes.toFixed(precision) + ' ' + sizes[posttxt];
+}
+
+%>
+<html>
+	<head>
+		<title>Index of <%= path %></title>
+		<style>
+		html
+		{
+			font: 16px/1 serif;
+		}
+
+		body
+		{
+			margin: 1em;
+		}
+
+		table
+		{
+			border-collapse: collapse;
+		}
+
+		th, td
+		{
+			padding: 0.5em;
+		}
+
+		thead th
+		{
+			border-bottom: 1px solid #AAA;
+		}
+
+		footer
+		{
+			font-size: 75%;
+		}
+		</style>
+	</head>
+	<body>
+		<h1>
+			Index of <%= path %>
+		</h1>
+		<nav>
+			<table>
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Last Modified</th>
+						<th>Size</th>
+					</tr>
+				</thead>
+				<tbody>
+
+<%
+
+var file, index, mtime, stat;
+
+for (index in files) {
+	file = files[index];
+
+	stat = require.fs.statSync(require.config.site_base + path + file);
+	mtime = stat.mtime;
+
+	stat.mtime = mtime.getFullYear() + '-' + pad2(mtime.getMonth()) + '-' + pad2(mtime.getDate()) + ' ' + pad2(mtime.getHours()) + ':' + pad2(mtime.getMinutes());
+
+	stat.name = file;
+
+%>
+					<tr>
+						<td><a href="<%= path + stat.name %>"><%= stat.name %></a></td>
+						<td><%= stat.mtime %></td>
+						<td><%= bytesToSize(stat.size) %></td>
+					</tr>
+<% } %>
+				</tbody>
+			</table>
+		</nav>
+		<footer>
+			<p>
+				NodeJS File Server
+			</p>
+		</footer>
+	</body>
+</html>
