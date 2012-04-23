@@ -10,6 +10,10 @@ REQUIRE = GLOBAL.require = {
 	jshtml: require('./jshtml.js')
 };
 
+process.on('uncaughtException', function (err) {
+	console.log('Caught exception: ' + err);
+});
+
 
 // Creates an object representing a server response
 
@@ -155,6 +159,8 @@ REQUIRE.http.createServer(function (request, response) {
 
 	GLOBAL.request = request;
 	GLOBAL.response = response;
+
+	console.log(request.headers['user-agent']);
 
 	if (request.method === 'GET') {
 		// Get response object
