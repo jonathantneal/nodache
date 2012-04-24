@@ -14,7 +14,6 @@ process.on('uncaughtException', function (err) {
 	console.log('Caught exception: ' + err);
 });
 
-
 // Creates an object representing a server response
 
 function ResponseObject(metadata) {
@@ -71,7 +70,7 @@ function handleRequest(path, callback) {
 
 
 
-// Creates a ResponseObject from a local file path
+// Creates a ResponseObject from a file path
 
 function getFileResponse(path, callback) {
 	var tpl;
@@ -89,7 +88,7 @@ function getFileResponse(path, callback) {
 			GLOBAL.path  = path;
 
 			if (REQUIRE.path.extname(path) == '.jshtml') {
-				tpl = new REQUIRE.jshtml.Template();
+				tpl = new REQUIRE.jshtml.JSHTML();
 
 				data = tpl.template(data.toString()).context(GLOBAL).render();
 			}
@@ -105,7 +104,7 @@ function getFileResponse(path, callback) {
 
 
 
-// Creates a ResponseObject from a local file path
+// Creates a ResponseObject from a directory path
 
 function getDirectoryResponse(path, callback) {
 	var tpl;
@@ -134,7 +133,7 @@ function getDirectoryResponse(path, callback) {
 				} else {
 					// Success
 					if (REQUIRE.path.extname(REQUIRE.config.directory_template) == '.jshtml') {
-						tpl = new REQUIRE.jshtml.Template();
+						tpl = new REQUIRE.jshtml.JSHTML();
 
 						data = tpl.template(data.toString()).context(GLOBAL).render();
 					}
@@ -160,39 +159,31 @@ REQUIRE.http.createServer(function (request, response) {
 	GLOBAL.request = request;
 	GLOBAL.response = response;
 
-	console.log(request.headers['user-agent']);
+	// Get response object
+	handleRequest(request.url, function (response_object) {
+		if (response_object.data && response_object.data.length > 0) {
+			etag = response_object.getEtag();
 
-	if (request.method === 'GET') {
-		// Get response object
-		handleRequest(request.url, function (response_object) {
-			if (response_object.data && response_object.data.length > 0) {
-				etag = response_object.getEtag();
-
-				if (request.headers.hasOwnProperty('if-none-match') && request.headers['if-none-match'] === etag) {
-					// Not Modified
-					response.writeHead(304);
-					response.end();
-				} else {
-					headers = {
-						'Content-Type': response_object.type,
-						'Content-Length' : response_object.data.length,
-						'Cache-Control' : 'max-age=' + (REQUIRE.config.file_expiry_time * 60).toString(),
-						'ETag' : etag
-					};
-
-					response.writeHead(response_object.status, headers);
-					response.end(response_object.data);
-				}
-			} else {
-				response.writeHead(response_object.status);
+			if (request.headers.hasOwnProperty('if-none-match') && request.headers['if-none-match'] === etag) {
+				// Not Modified
+				response.writeHead(304);
 				response.end();
+			} else {
+				headers = {
+					'Content-Type': response_object.type,
+					'Content-Length' : response_object.data.length,
+					'Cache-Control' : 'max-age=' + (REQUIRE.config.file_expiry_time * 60).toString(),
+					'ETag' : etag
+				};
+
+				response.writeHead(response_object.status, headers);
+				response.end(response_object.data);
 			}
-		});
-	} else {
-		// Forbidden
-		response.writeHead(403);
-		response.end();
-	}
+		} else {
+			response.writeHead(response_object.status);
+			response.end();
+		}
+	});
 }).listen(REQUIRE.config.port, REQUIRE.config.host);
 
 console.log('Server started: http://' + REQUIRE.config.host + ':' + REQUIRE.config.port);

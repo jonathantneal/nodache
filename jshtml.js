@@ -1,4 +1,4 @@
-// TemplateJS v3.1.1 MIT/GPL2 @jon_neal
+// JSHTML v3.1.1 MIT/GPL2 @jon_neal
 (function (global) {
 	function escapeJS (str) {
 		return str.replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
@@ -54,7 +54,7 @@
 		return buffer;
 	}
 
-	function Template (val) {
+	function JSHTML (val) {
 		var instance = this, data = instance.data = {
 			template: '',
 			compiled: function () {},
@@ -62,24 +62,29 @@
 		}, delimiters = instance.delimiters = {
 			'START_PROP': '<%',
 			'END_PROP': '%>'
+		}, extenders = instance.extenders = {
+			'if':     function (js, end) { return end ? '}}' : '{if((' + js + ')){'; },
+			'each':   function (js, end) { return end ? '}}' : 'for(var __property__ in ' + js + '){with(' + js + '[__property__]){'; },
+			'else':   function (js, end) { return end ? '}}' : '}else if((' + (js.replace(/\s+/, '') ? js : 'true') + ')){'; },
+			'unless': function (js, end) { return end ? '}}' : '{if(!(' + js + ')){'; },
+			'with':   function (js, end) { return end ? '}}' : '{with(' + js + '){'; },
+			'while':  function (js, end) { return end ? '}}' : '{while((' + js + ')){'; }
 		}, helpers = instance.helpers = {
-			'=': function (js) {
-				return '__out__+=' + js + ';';
-			},
-			'?': function (js) {
-				return '{if((' + js + ')){';
-			},
-			'!': function (js) {
-				return '{if(!(' + js + ')){';
-			},
+			'=': function (js) { return '__out__+=' + js + ';'; },
+			'?': extenders.if,
+			':': extenders.else,
+			'!': extenders.unless,
+			'@': extenders.with,
+			'-': extenders.while, 
 			'#': function (js) {
-				return 'for(var __property__ in ' + js + '){with(' + js + '[__property__]){';
-			},
-			'@': function (js) {
-				return '{with(' + js + '){';
+				var index = js.indexOf(' '), script = js.substr(index > -1 ? index : 0);
+
+				return (extenders[js.substr(0, indexOf)] || extenders.each)(script);
 			},
 			'/': function (js) {
-				return '}}';
+				var index = js.indexOf(' '), script = js.substr(index > -1 ? index : 0);
+
+				return (extenders[js.substr(0, index)] || extenders.each)(script, true);
 			}
 		}
 
@@ -130,5 +135,5 @@
 		return instance;
 	}
 
-	global.Template = Template;
+	global.JSHTML = JSHTML;
 })(this);
