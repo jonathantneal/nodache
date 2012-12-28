@@ -44,15 +44,15 @@ function Main() {
 		}
 	};
 
-	this.defaultType = 'text/html';
+	this.defaultType = "text/html";
 
 	this.getType = function (path) {
-		var ext = path.replace(/^[\W\w]*\./, ''), type, subtype;
+		var ext = path.replace(/^[\W\w]*\./, ""), type, subtype;
 
 		for (type in this.types) {
 			for (subtype in this.types[type]) {
-				if ((' ' + this.types[type][subtype] + ' ').indexOf(ext) > -1) {
-					return type + '/' + subtype;
+				if ((" " + this.types[type][subtype] + " ").indexOf(ext) > -1) {
+					return type + "/" + subtype;
 				}
 			}
 		}

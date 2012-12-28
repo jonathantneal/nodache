@@ -1,17 +1,17 @@
 var
 GLOBAL = this,
 REQUIRE = GLOBAL.require = {
-	config: require('./server.config.js'),
-	mime:   require('./server.mimetypes.js'),
-	http:   require('http'),
-	path:   require('path'),
-	fs:     require('fs'),
-	crypto: require('crypto'),
-	jshtml: require('./jshtml.js')
+	config: require("./server.config.js"),
+	mime:   require("./server.mimetypes.js"),
+	http:   require("http"),
+	path:   require("path"),
+	fs:     require("fs"),
+	crypto: require("crypto"),
+	jshtml: require("./jshtml.js")
 };
 
-process.on('uncaughtException', function (err) {
-	console.log('Caught exception: ' + err);
+process.on("uncaughtException", function (err) {
+	console.log("Caught exception: " + err);
 });
 
 
@@ -20,13 +20,13 @@ process.on('uncaughtException', function (err) {
 
 function ResponseObject(metadata) {
 	this.data   = metadata.data || false;
-	this.path   = metadata.path || '';
+	this.path   = metadata.path || "";
 	this.status = metadata.status || 200;
 	this.type   = metadata.type || false;
 }
 
 ResponseObject.prototype.getEtag = function () {
-	return REQUIRE.crypto.createHash('md5').update(this.data).digest('hex');
+	return REQUIRE.crypto.createHash("md5").update(this.data).digest("hex");
 };
 
 
@@ -43,7 +43,7 @@ function handleRequest(path, callback) {
 
 	if (isDirectory && directoryListing) {
 		// Permitted directory
-		path = path.replace(/\/$/, '') + '/';
+		path = path.replace(/\/$/, "") + "/";
 
 		for (index in indexes) {
 			if (REQUIRE.fs.existsSync(REQUIRE.config.site_base + path + indexes[index])) {
@@ -55,8 +55,8 @@ function handleRequest(path, callback) {
 	} else if (isDirectory) {
 		// Forbidden directory
 		callback(new ResponseObject({
-			'path': path,
-			'status': 403
+			"path": path,
+			"status": 403
 		}));
 	} else if (isPath) {
 		// Permitted file
@@ -64,8 +64,8 @@ function handleRequest(path, callback) {
 	} else {
 		// Missing file
 		return callback(new ResponseObject({
-			'path': path,
-			'status': 404
+			"path": path,
+			"status": 404
 		}));
 	}
 }
@@ -81,24 +81,24 @@ function getFileResponse(path, callback) {
 		if (error) {
 			// Internal error
 			callback(new ResponseObject({
-				'data': error.stack,
-				'path': path,
-				'status': 500
+				"data": error.stack,
+				"path": path,
+				"status": 500
 			}));
 		} else {
 			// Success
 			GLOBAL.path  = path;
 
-			if (REQUIRE.path.extname(path) == '.jshtml') {
+			if (REQUIRE.path.extname(path) == ".jshtml") {
 				tpl = new REQUIRE.jshtml.JSHTML();
 
 				data = tpl.template(data.toString()).context(GLOBAL).render();
 			}
 
 			callback(new ResponseObject({
-				'data': new Buffer(data),
-				'path': path,
-				'type': REQUIRE.mime.getType(path)
+				"data": new Buffer(data),
+				"path": path,
+				"type": REQUIRE.mime.getType(path)
 			}));
 		}
 	});
@@ -115,9 +115,9 @@ function getDirectoryResponse(path, callback) {
 		if (error) {
 			// Internal error
 			callback(new ResponseObject({
-				'data': error.stack,
-				'path': path,
-				'status': 500
+				"data": error.stack,
+				"path": path,
+				"status": 500
 			}));
 		} else {
 			// Success
@@ -128,22 +128,22 @@ function getDirectoryResponse(path, callback) {
 				if (error) {
 					// Internal error
 					callback(new ResponseObject({
-						'data': error.stack,
-						'path': path,
-						'status': 500
+						"data": error.stack,
+						"path": path,
+						"status": 500
 					}));
 				} else {
 					// Success
-					if (REQUIRE.path.extname(REQUIRE.config.directory_template) == '.jshtml') {
+					if (REQUIRE.path.extname(REQUIRE.config.directory_template) == ".jshtml") {
 						tpl = new REQUIRE.jshtml.JSHTML();
 
 						data = tpl.template(data.toString()).context(GLOBAL).render();
 					}
 
 					callback(new ResponseObject({
-						'data': new Buffer(data),
-						'path': path,
-						'type': REQUIRE.mime.getType(REQUIRE.config.site_base + path)
+						"data": new Buffer(data),
+						"path": path,
+						"type": REQUIRE.mime.getType(REQUIRE.config.site_base + path)
 					}));
 				}
 			});
@@ -166,16 +166,16 @@ REQUIRE.http.createServer(function (request, response) {
 		if (response_object.data && response_object.data.length > 0) {
 			etag = response_object.getEtag();
 
-			if (request.headers.hasOwnProperty('if-none-match') && request.headers['if-none-match'] === etag) {
+			if (request.headers.hasOwnProperty("if-none-match") && request.headers["if-none-match"] === etag) {
 				// Not Modified
 				response.writeHead(304);
 				response.end();
 			} else {
 				headers = {
-					'Content-Type': response_object.type,
-					'Content-Length' : response_object.data.length,
-					'Cache-Control' : 'max-age=' + (REQUIRE.config.file_expiry_time * 60).toString(),
-					'ETag' : etag
+					"Content-Type": response_object.type,
+					"Content-Length" : response_object.data.length,
+					"Cache-Control" : "max-age=" + (REQUIRE.config.file_expiry_time * 60).toString(),
+					"ETag" : etag
 				};
 
 				response.writeHead(response_object.status, headers);
@@ -188,4 +188,4 @@ REQUIRE.http.createServer(function (request, response) {
 	});
 }).listen(REQUIRE.config.port, REQUIRE.config.host);
 
-console.log('Server started: http://' + REQUIRE.config.host + ':' + REQUIRE.config.port);
+console.log("Server started: http://" + REQUIRE.config.host + ":" + REQUIRE.config.port);

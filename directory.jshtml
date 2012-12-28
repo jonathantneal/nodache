@@ -4,14 +4,14 @@
 function pad2(number) {
 	var zero = 3 - number.toString().length;
 
-	return Array( +(zero > 0 && zero)).join('0') + number;
+	return Array( +(zero > 0 && zero)).join("0") + number;
 }
 
 function bytesToSize(bytes, precision) {
 	var
-	sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'], posttxt = 0;
+	sizes = ["Bytes", "KB", "MB", "GB", "TB"], posttxt = 0;
 	if (bytes == 0) {
-		return 'n/a';
+		return "n/a";
 	}
 
 	while(bytes >= 1024) { 
@@ -20,7 +20,7 @@ function bytesToSize(bytes, precision) {
 		bytes = bytes / 1024;
 	}
 
-	return bytes.toFixed(precision) + ' ' + sizes[posttxt];
+	return bytes.toFixed(precision) + " " + sizes[posttxt];
 }
 
 %>
@@ -84,7 +84,7 @@ for (index in files) {
 	stat = require.fs.statSync(require.config.site_base + path + file);
 	mtime = stat.mtime;
 
-	stat.mtime = mtime.getFullYear() + '-' + pad2(mtime.getMonth()) + '-' + pad2(mtime.getDate()) + ' ' + pad2(mtime.getHours()) + ':' + pad2(mtime.getMinutes());
+	stat.mtime = mtime.getFullYear() + "-" + pad2(mtime.getMonth()) + "-" + pad2(mtime.getDate()) + " " + pad2(mtime.getHours()) + ":" + pad2(mtime.getMinutes());
 
 	stat.name = file;
 
