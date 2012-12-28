@@ -14,6 +14,8 @@ process.on('uncaughtException', function (err) {
 	console.log('Caught exception: ' + err);
 });
 
+
+
 // Creates an object representing a server response
 
 function ResponseObject(metadata) {
