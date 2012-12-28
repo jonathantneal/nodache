@@ -36,7 +36,7 @@ function handleRequest(path, callback) {
 	directoryListing = REQUIRE.config.directory_listing,
 	index,
 	indexes     = REQUIRE.config.directory_index,
-	isPath      = REQUIRE.path.existsSync(REQUIRE.config.site_base + path),
+	isPath      = REQUIRE.fs.existsSync(REQUIRE.config.site_base + path),
 	isDirectory = isPath && REQUIRE.fs.lstatSync(REQUIRE.config.site_base + path).isDirectory();
 
 	if (isDirectory && directoryListing) {
@@ -44,7 +44,7 @@ function handleRequest(path, callback) {
 		path = path.replace(/\/$/, '') + '/';
 
 		for (index in indexes) {
-			if (REQUIRE.path.existsSync(REQUIRE.config.site_base + path + indexes[index])) {
+			if (REQUIRE.fs.existsSync(REQUIRE.config.site_base + path + indexes[index])) {
 				return getFileResponse(path + indexes[index], callback);
 			}
 		}
