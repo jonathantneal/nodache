@@ -7,8 +7,6 @@ function Main() {
 			"pdf": "pdf",
 			"vnd.ms-fontobject": "eot",
 			"x-chrome-extension": "crx",
-			"x-font-ttf": "ttc ttf",
-			"x-font-woff": "xpi",
 			"x-opera-extension": "oex",
 			"x-web-app-manifest+json": "webapp",
 			"xpi": "x-xpinstall",
@@ -20,7 +18,9 @@ function Main() {
 		},
 		"font":
 		{
-			"opentype": "otf"
+			"opentype": "otf",
+			"ttf": "ttc ttf",
+			"woff": "woff xpi"
 		},
 		"image": {
 			"gif": "gif",
