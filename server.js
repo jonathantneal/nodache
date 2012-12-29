@@ -178,6 +178,10 @@ REQUIRE.http.createServer(function (request, response) {
 					"ETag" : etag
 				};
 
+				var ua = request.headers['user-agent'];
+
+				if (ua && /MSIE/.test(ua)) headers["X-UA-Compatible"] = "IE=Edge,chrome=1";
+
 				response.writeHead(response_object.status, headers);
 				response.end(response_object.data);
 			}
@@ -186,6 +190,6 @@ REQUIRE.http.createServer(function (request, response) {
 			response.end();
 		}
 	});
-}).listen(REQUIRE.config.port, REQUIRE.config.host);
+}).listen(REQUIRE.config.port);
 
 console.log("Server started: http://" + REQUIRE.config.host + ":" + REQUIRE.config.port);
