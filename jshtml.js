@@ -1,17 +1,17 @@
-// JSHTML v3.1.1 MIT/GPL2 @jon_neal
+// JSHTML v4.0.0 MIT/GPL2 @jon_neal
 (function (global) {
-	function escapeJS (str) {
+	function escapeJS(str) {
 		return str.replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
 	}
 
-	function TemplateWalk (str, chars, helpers, instance) {
+	function TemplateWalk(str, chars) {
 		// check for the opening delimiters and init our array buffer
 		var index = str.indexOf(chars.START_PROP), buffer = '', helper;
 
 		// if the opening delimiters are encountered
 		if (index > -1) {
 			// add to the buffer the contents before the opening delimiters
-			buffer += '__out__+="' + escapeJS(str.substr(0, index)) + '";';
+			buffer += 'document.write("' + escapeJS(str.substr(0, index)) + '");';
 
 			// move the string to after the opening delimiters
 			str = str.substr(index + chars.START_PROP.length);
@@ -24,37 +24,34 @@
 
 			// if the closing delimiters are encountered
 			if (index > -1) {
-				// if the helper function does exist
-				if (helpers[helper]) {
+				if (helper == "=") {
 					// add to the buffer the return of the helper function
-					buffer += helpers[helper].call(instance, str.substr(helper.length, index - helper.length));
+					buffer += 'document.write(' + str.substr(helper.length, index - helper.length) + ');';
 
 					// move the string to after the closing delimiters
 					str = str.substr(index + chars.END_PROP.length);
 
 					// add to the buffer the return of this function
-					buffer += TemplateWalk(str, chars, helpers, instance);
-				}
-				// if the helper function does not exist
-				else {
+					buffer += TemplateWalk(str, chars);
+				} else {
 					// add to the buffer the contents before the closing delimiters
 					buffer += str.substr(0, index);
 
 					// add to the buffer the return of this function
-					buffer += TemplateWalk(str.substr(index + chars.END_PROP.length), chars, helpers, instance);
+					buffer += TemplateWalk(str.substr(index + chars.END_PROP.length), chars);
 				}
 			}
 		}
 		// if the opening delimiters are not encountered
 		else {
-			buffer += '__out__+="' + escapeJS(str) + '";';
+			buffer += 'document.write("' + escapeJS(str) + '");';
 		}
 
 		// return the buffer
 		return buffer;
 	}
 
-	function JSHTML (val) {
+	function JSHTML(val) {
 		var instance = this, data = instance.data = {
 			template: '',
 			compiled: function () {},
@@ -95,9 +92,11 @@
 				if (val !== data.template) {
 					data.template = val;
 
-					data.compiled = Function((
-						'__out__="";with(this){' + TemplateWalk(val, delimiters, helpers, instance) + '}return __out__;'
-					).replace(/;__out__\+=/g, '+'));
+					data.compiled = Function(
+						'scope',
+						'document',
+						'with(scope){' + TemplateWalk(val, delimiters) + '}return document.innerHTML;'
+					);
 
 					delete data.cached;
 				}
@@ -125,7 +124,12 @@
 				instance.context(val);
 			}
 
-			return data.cached !== undefined ? data.cached : data.cached = data.compiled.call(data.context);
+			return data.cached !== undefined ? data.cached : data.cached = data.compiled.call(global, data.context, {
+				innerHTML: "",
+				write: function (value) {
+					this.innerHTML += String(value);
+				}
+			});
 		};
 
 		if (val) {
