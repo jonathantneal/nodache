@@ -1,5 +1,10 @@
 // JSHTML v4.0.0 MIT/GPL2 @jon_neal
 (function (global) {
+	function Document() {}
+
+	Document.prototype.write = Array.prototype.push;
+	Document.prototype.close = function () { return Array.prototype.splice.call(this, 0, this.length).join(""); };
+
 	function escapeJS(str) {
 		return str.replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
 	}
@@ -51,92 +56,23 @@
 		return buffer;
 	}
 
-	function JSHTML(val) {
-		var instance = this, data = instance.data = {
-			template: '',
-			compiled: function () {},
-			cached: ''
-		}, delimiters = instance.delimiters = {
+	function JSHTML() {
+		var
+		instance   = this;
+
+		instance.template = '';
+		instance.context = {};
+		instance.render = function () {
+			return Function(
+				'scope',
+				'document',
+				'with(scope){' + TemplateWalk(instance.template, instance.delimiters) + '}return document;'
+			).call(instance, instance.context, new Document).close();
+		};
+		instance.delimiters = {
 			'START_PROP': '<%',
 			'END_PROP': '%>'
-		}, extenders = instance.extenders = {
-			'if':     function (js, end) { return end ? '}}' : '{if((' + js + ')){'; },
-			'each':   function (js, end) { return end ? '}}' : 'for(var __property__ in ' + js + '){with(' + js + '[__property__]){'; },
-			'else':   function (js, end) { return end ? '}}' : '}else if((' + (js.replace(/\s+/, '') ? js : 'true') + ')){'; },
-			'unless': function (js, end) { return end ? '}}' : '{if(!(' + js + ')){'; },
-			'with':   function (js, end) { return end ? '}}' : '{with(' + js + '){'; },
-			'while':  function (js, end) { return end ? '}}' : '{while((' + js + ')){'; }
-		}, helpers = instance.helpers = {
-			'=': function (js) { return '__out__+=' + js + ';'; },
-			'?': extenders.if,
-			':': extenders.else,
-			'!': extenders.unless,
-			'@': extenders.with,
-			'-': extenders.while, 
-			'#': function (js) {
-				var index = js.indexOf(' '), script = js.substr(index > -1 ? index : 0);
-
-				return (extenders[js.substr(0, indexOf)] || extenders.each)(script);
-			},
-			'/': function (js) {
-				var index = js.indexOf(' '), script = js.substr(index > -1 ? index : 0);
-
-				return (extenders[js.substr(0, index)] || extenders.each)(script, true);
-			}
-		}
-
-		instance.template = function (val) {
-			if (val === undefined) {
-				return data.template;
-			} else {
-				if (val !== data.template) {
-					data.template = val;
-
-					data.compiled = Function(
-						'scope',
-						'document',
-						'with(scope){' + TemplateWalk(val, delimiters) + '}return document.innerHTML;'
-					);
-
-					delete data.cached;
-				}
-
-				return instance;
-			}
 		};
-
-		instance.context = function (val) {
-			if (val === undefined) {
-				return data.context;
-			} else {
-				if (val !== data.context) {
-					data.context = val;
-
-					delete data.cached;
-				}
-
-				return instance;
-			}
-		};
-
-		instance.render = function (val) {
-			if (val !== undefined) {
-				instance.context(val);
-			}
-
-			return data.cached !== undefined ? data.cached : data.cached = data.compiled.call(global, data.context, {
-				innerHTML: "",
-				write: function (value) {
-					this.innerHTML += String(value);
-				}
-			});
-		};
-
-		if (val) {
-			instance.template(val);
-		}
-
-		return instance;
 	}
 
 	global.JSHTML = JSHTML;

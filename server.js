@@ -90,9 +90,12 @@ function getFileResponse(path, callback) {
 			GLOBAL.path  = path;
 
 			if (REQUIRE.path.extname(path) == ".jshtml") {
-				tpl = new REQUIRE.jshtml.JSHTML();
+				tpl = new REQUIRE.jshtml.JSHTML;
 
-				data = tpl.template(data.toString()).context(GLOBAL).render();
+				tpl.template = data.toString();
+				tpl.context = GLOBAL;
+
+				data = tpl.render();
 			}
 
 			callback(new ResponseObject({
@@ -137,7 +140,10 @@ function getDirectoryResponse(path, callback) {
 					if (REQUIRE.path.extname(REQUIRE.config.directory_template) == ".jshtml") {
 						tpl = new REQUIRE.jshtml.JSHTML();
 
-						data = tpl.template(data.toString()).context(GLOBAL).render();
+						tpl.template = data.toString();
+						tpl.context = GLOBAL;
+
+						data = tpl.render();
 					}
 
 					callback(new ResponseObject({
